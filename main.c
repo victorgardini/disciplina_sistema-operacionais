@@ -10,7 +10,8 @@
 #define NUMBER_OF_THREADS 10
 
 void * print_hello_world(void *tid){ // Function for print thread ID and exit
-    printf("Olá, mundo! Boas vindas do thread %d\n", tid);
+    int * valor = (int *) tid;
+    printf("Olá, mundo! Boas vindas do thread %d\n", *valor);
     pthread_exit(NULL);
 }
 
@@ -25,12 +26,20 @@ int main(int argc, char *argv[]){
         
         // If not use -pthread on compilation command, this line will generate an warning
         // at (void *)i convertion, and an reference error of pthread_create function
-        status = pthread_create(&threads[i], NULL, print_hello_world, (void *)i);
+        status = pthread_create(&threads[i], NULL, print_hello_world, (void *) (&i));
         
         if (status != 0) { // Some error had happened
             printf("Oops. pthread_create retornou um erro %d\n", status);
-            exit(-1);
+            // exit(-1); // encerra a execução do programa caso tenha ocorrido um erro
         }
     }
-    exit(NULL);
+
+    /*  Temos que a execução do programa finaliza com as threads incompletas.
+        Este loop garante que o programa retome o seu fluxo de execução somente quando todas
+        as threads sejam finalizadas
+    */
+    for(i = 0; i < NUMBER_OF_THREADS; i++)
+        pthread_join(threads[i], NULL);
+
+    exit(0);
 }
